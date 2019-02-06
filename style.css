@@ -233,17 +233,16 @@ div.input-container {
     overflow: hidden;
     margin: auto;
     padding: 15px;
+    border-radius: 8px;
     box-sizing: border-box;
     background-color: #363D48;
     border: solid 1px #e6e6e6;
-    border-radius: 8px;
     color: #FFFFFF;
     text-align: center;
 }
 
 .user-input-modal .modal-button {
     display: inline-block;
-    width: 100px;
     margin: 0px 10px 20px 10px;
     padding: 5px;
     box-sizing: border-box;
@@ -276,10 +275,9 @@ div.input-container {
     line-height: 24pt;
     outline: none;
     font-size: 14px;
-    border: solid 1px #e6e6e6;
-    background-color: #6D7582;
+    border: none;
+    background-color: white;
     border-radius: 3px;
-    color: #FFFFFF;
     font-family: inherit;
     text-align: center;
 }

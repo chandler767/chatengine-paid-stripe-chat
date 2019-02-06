@@ -23,7 +23,7 @@ getLocalUserName().then((myUsername) => {
     // Connect ChatEngine after a username and UUID have been made
     ChatEngine.connect(uuid, {
         username
-    }, 'auth-key');
+    }, username);
 });
 
 // Send a message when Enter key is pressed
@@ -45,10 +45,10 @@ window.onbeforeunload = (event) => {
 
 // Init ChatEngine
 const ChatEngine = ChatEngineCore.create({
-    publishKey: 'pub-c-c2916a62-b90e-4d3b-97d4-7b71e5593480',
-    subscribeKey: 'sub-c-d8a534e2-fe86-11e8-80f1-b6259b5c8742'
+    publishKey: 'pub-c-3c140ec6-5470-4241-b3a0-10413e0f797c',
+    subscribeKey: 'sub-c-6843106e-2985-11e9-991a-bee2ac9fced0'
 }, {
-    globalChannel: 'chat-example'
+    globalChannel: 'paid-chat-example'
 });
 
 // Init the WebRTC plugin and chat interface here
@@ -127,15 +127,27 @@ function getLocalUserName() {
                 joinButton.classList.add('disabled');
             }
 
-            if (event.keyCode === 13 && nameLength > 0) {
-                resolve(usernameInput.value);
+            if (event.keyCode === 13) {
+                joinButton.click();
             }
         });
 
         joinButton.addEventListener('click', (event) => {
             const nameLength = usernameInput.value.length;
+
             if (nameLength > 0) {
-                resolve(usernameInput.value);
+                $.ajax({
+                    url: "https://pubsub.pubnub.com/v1/blocks/sub-key/sub-c-6843106e-2985-11e9-991a-bee2ac9fced0/auth?username="+usernameInput.value,
+                    type: "GET",
+                    complete: function(xhr, textStatus) {
+                        console.log(xhr.status);
+                        if (xhr.status == 200) {
+                            resolve(usernameInput.value);
+                        } else {
+                            alert("Unable to join chat. Did you pay for access?")
+                        }
+                    } 
+                });
             }
         });
     });
