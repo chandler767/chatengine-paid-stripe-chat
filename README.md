@@ -1,6 +1,14 @@
 # PubNub ChatEngine Paid Chat With Stripe
 
-[![ChatEngine](https://github.com/pubnub/chat-engine/blob/master/images/logo.png?raw=true)](https://www.pubnub.com/blog/socketio-chat-app-alternative/?devrel_gh=chatengine-paid-stripe-chat)
+<p align="center">
+  <a href="https://www.pubnub.com/blog/socketio-chat-app-alternative/?devrel_gh=chatengine-paid-stripe-chat">
+      <img alt="PubNub Blog" src="https://github.com/pubnub/chat-engine/blob/master/images/logo.png?raw=true" width=250/>
+  </a>
+
+  <a href="https://stripe.com/">
+      <img alt="PubNub Blog" src="https://stripe.com/img/about/logos/logos/blue.png" width=170/>
+  </a>
+</p>
 
 This project is based on [PubNub ChatEngine Basic Chat](https://github.com/ajb413/chatengine-basic-chat) with the addition of using Stripe to process a charge before allowing access to the chat.
 
