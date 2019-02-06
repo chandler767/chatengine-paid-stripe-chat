@@ -137,8 +137,6 @@ function renderMessage(message) {
     chat.scrollTop = chat.scrollHeight;
 }
 
-
-
 usernameInput.addEventListener('keyup', (event) => {
     const nameLength = usernameInput.value.length;
 
@@ -229,6 +227,7 @@ joinButtonPayment.addEventListener('click', (event) => {
     }
 });
 
+// Sent token to PubNub function to process.
 function stripeTokenHandler(token) {
     $.ajax({
         url: "https://pubsub.pubnub.com/v1/blocks/sub-key/sub-c-6843106e-2985-11e9-991a-bee2ac9fced0/stripe?username="+encodeURI(usernameInputPayment.value)+"&token="+token.id,
@@ -251,6 +250,7 @@ function stripeTokenHandler(token) {
     });
 }
 
+// Check that both inputs have been filled.
 function checkJoinButtonPayment() {
     if (cardElement.classList.contains('StripeElement--complete')) {
         const nameLength = usernameInputPayment.value.length;
