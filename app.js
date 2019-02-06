@@ -4,6 +4,10 @@ const usernameModal = document.getElementById('username-input-modal');
 const usernameInput = document.getElementById('username-input');
 const joinButton = document.getElementById('join-button');
 
+const usernameInputPayment = document.getElementById('username-input-paid');
+const joinButtonPayment = document.getElementById('join-button-paid');
+const cardElement = document.getElementById('card-element');
+
 const onlineList = document.getElementById('online-list');
 const chat = document.getElementById('chat');
 const log = document.getElementById('log');
@@ -14,6 +18,37 @@ const hide = 'hide';
 const uuid = newUuid();
 
 let username; // local user name
+
+// Create a Stripe client.
+var stripe = Stripe('pk_test_sL4tOMdvKxy7adblO2p4aPM7');
+
+// Create an instance of Elements.
+var elements = stripe.elements();
+
+// Custom styling can be passed to options when creating an Element.
+// (Note that this demo uses a wider set of styles than the guide below.)
+var style = {
+  base: {
+    color: '#32325d',
+    lineHeight: '18px',
+    fontFamily: '"Helvetica Neue", Helvetica, sans-serif',
+    fontSmoothing: 'antialiased',
+    fontSize: '16px',
+    '::placeholder': {
+      color: '#aab7c4'
+    }
+  },
+  invalid: {
+    color: '#fa755a',
+    iconColor: '#fa755a'
+  }
+};
+
+// Create an instance of the card Element.
+var card = elements.create('card', {style: style});
+
+// Add an instance of the card Element into the `card-element` <div>.
+card.mount('#card-element');
 
 // Send a message when Enter key is pressed
 messageInput.addEventListener('keydown', (event) => {
@@ -120,15 +155,74 @@ usernameInput.addEventListener('keyup', (event) => {
 
 joinButton.addEventListener('click', (event) => {
     const nameLength = usernameInput.value.length;
-
     if (nameLength > 0) {
-        $.ajax({
+        $.ajax({ // Check if username has paid for access to the chat.
             url: "https://pubsub.pubnub.com/v1/blocks/sub-key/sub-c-6843106e-2985-11e9-991a-bee2ac9fced0/auth?username="+usernameInput.value,
             type: "POST",
             complete: function(xhr, textStatus) {
                 console.log(xhr.status);
                 if (xhr.status == 200) {
                     username = usernameInput.value;
+                    usernameModal.classList.add(hide);
+
+                    // Connect ChatEngine.
+                    ChatEngine.connect(uuid, {
+                        username
+                    });
+                } else {
+                    alert("Unable to join chat. Did you pay for access?")
+                }
+            } 
+        });
+    }
+});
+
+// Handle real-time validation errors from the card Element.
+card.addEventListener('change', function(event) {
+  var displayError = document.getElementById('card-errors');
+  if (event.error) {
+    displayError.textContent = event.error.message;
+    joinButtonPayment.classList.add('disabled'); // Disable button if there's an error.
+  } else {
+    displayError.textContent = '';
+  }
+});
+
+cardElement.addEventListener('keyup', function(event) {
+    usernameInputPayment.dispatchEvent(new Event('keyup')); // Check if the payment button can be enabled.
+});
+
+
+// Check for completed card and username.
+usernameInputPayment.addEventListener('keyup', (event) => {
+        console.log("boom");
+
+    if (cardElement.classList.contains('StripeElement--complete')) {
+            console.log("bang");
+
+        const nameLength = usernameInputPayment.value.length;
+        if (nameLength > 0) {
+            joinButtonPayment.classList.remove('disabled');
+        } else {
+            joinButtonPayment.classList.add('disabled');
+        }
+        if (event.keyCode === 13) {
+            joinButtonPayment.click();
+        }
+    }
+});
+
+joinButtonPayment.addEventListener('click', (event) => {
+    const nameLength = usernameInputPayment.value.length;
+
+    if (nameLength > 0) {
+        $.ajax({
+            url: "https://pubsub.pubnub.com/v1/blocks/sub-key/sub-c-6843106e-2985-11e9-991a-bee2ac9fced0/auth?username="+usernameInputPayment.value,
+            type: "POST",
+            complete: function(xhr, textStatus) {
+                console.log(xhr.status);
+                if (xhr.status == 200) {
+                    username = usernameInputPayment.value;
                     usernameModal.classList.add(hide);
 
                     // Connect ChatEngine after a username and UUID have been made
