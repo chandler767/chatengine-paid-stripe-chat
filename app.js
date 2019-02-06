@@ -157,7 +157,7 @@ joinButton.addEventListener('click', (event) => {
     const nameLength = usernameInput.value.length;
     if (nameLength > 0) {
         $.ajax({ // Check if username has paid for access to the chat.
-            url: "https://pubsub.pubnub.com/v1/blocks/sub-key/sub-c-6843106e-2985-11e9-991a-bee2ac9fced0/auth?username="+usernameInput.value,
+            url: "https://pubsub.pubnub.com/v1/blocks/sub-key/sub-c-6843106e-2985-11e9-991a-bee2ac9fced0/auth?username="+encodeURI(usernameInput.value),
             type: "POST",
             complete: function(xhr, textStatus) {
                 console.log(xhr.status);
@@ -200,7 +200,7 @@ usernameInputPayment.addEventListener('keyup', (event) => {
 joinButtonPayment.addEventListener('click', (event) => {
     if (checkJoinButtonPayment()) {
         $.ajax({
-            url: "https://pubsub.pubnub.com/v1/blocks/sub-key/sub-c-6843106e-2985-11e9-991a-bee2ac9fced0/auth?username="+usernameInputPayment.value,
+            url: "https://pubsub.pubnub.com/v1/blocks/sub-key/sub-c-6843106e-2985-11e9-991a-bee2ac9fced0/auth?username="+encodeURI(usernameInputPayment.value),
             type: "POST",
             complete: function(xhr, textStatus) {
                 console.log(xhr.status);
@@ -230,8 +230,25 @@ joinButtonPayment.addEventListener('click', (event) => {
 });
 
 function stripeTokenHandler(token) {
-//todo    
-alert(token.id);
+    $.ajax({
+        url: "https://pubsub.pubnub.com/v1/blocks/sub-key/sub-c-6843106e-2985-11e9-991a-bee2ac9fced0/stripe?username="+encodeURI(usernameInputPayment.value)+"&token="+token.id,
+        type: "POST",
+        complete: function(xhr, textStatus) {
+            console.log(xhr.status);
+            if (xhr.status == 200) {
+                alert("Thanks for paying.");
+                username = usernameInputPayment.value;
+                usernameModal.classList.add(hide);
+                // Connect ChatEngine.
+                ChatEngine.connect(uuid, {
+                    username
+                });
+            } else {
+                alert("Could not process charge at this time. Please check your card and try again.")
+                console.log(xhr.responseText)
+            }
+        } 
+    });
 }
 
 function checkJoinButtonPayment() {
