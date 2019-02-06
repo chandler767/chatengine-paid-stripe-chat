@@ -182,61 +182,73 @@ card.addEventListener('change', function(event) {
   var displayError = document.getElementById('card-errors');
   if (event.error) {
     displayError.textContent = event.error.message;
-    joinButtonPayment.classList.add('disabled'); // Disable button if there's an error.
   } else {
     displayError.textContent = '';
   }
+  checkJoinButtonPayment();
 });
-
-cardElement.addEventListener('keyup', function(event) {
-    usernameInputPayment.dispatchEvent(new Event('keyup')); // Check if the payment button can be enabled.
-});
-
 
 // Check for completed card and username.
 usernameInputPayment.addEventListener('keyup', (event) => {
-        console.log("boom");
-
-    if (cardElement.classList.contains('StripeElement--complete')) {
-            console.log("bang");
-
-        const nameLength = usernameInputPayment.value.length;
-        if (nameLength > 0) {
-            joinButtonPayment.classList.remove('disabled');
-        } else {
-            joinButtonPayment.classList.add('disabled');
-        }
-        if (event.keyCode === 13) {
-            joinButtonPayment.click();
-        }
+    checkJoinButtonPayment();
+    if (event.keyCode === 13) {
+        joinButtonPayment.click();
     }
 });
 
+// Get token and process payment.
 joinButtonPayment.addEventListener('click', (event) => {
-    const nameLength = usernameInputPayment.value.length;
-
-    if (nameLength > 0) {
+    if (checkJoinButtonPayment()) {
         $.ajax({
             url: "https://pubsub.pubnub.com/v1/blocks/sub-key/sub-c-6843106e-2985-11e9-991a-bee2ac9fced0/auth?username="+usernameInputPayment.value,
             type: "POST",
             complete: function(xhr, textStatus) {
                 console.log(xhr.status);
                 if (xhr.status == 200) {
+                    alert("You have already paid and will not be charged again.")
                     username = usernameInputPayment.value;
                     usernameModal.classList.add(hide);
-
-                    // Connect ChatEngine after a username and UUID have been made
+                    // Connect ChatEngine.
                     ChatEngine.connect(uuid, {
                         username
                     });
                 } else {
-                    alert("Unable to join chat. Did you pay for access?")
+                    stripe.createToken(card).then(function(result) {
+                    if (result.error) {
+                      // Inform the user if there was an error.
+                      var errorElement = document.getElementById('card-errors');
+                      errorElement.textContent = result.error.message;
+                    } else {
+                      // Send the token to PubNub to process.
+                      stripeTokenHandler(result.token);
+                    }
+                  });
                 }
             } 
         });
     }
 });
 
+function stripeTokenHandler(token) {
+//todo    
+alert(token.id);
+}
+
+function checkJoinButtonPayment() {
+    if (cardElement.classList.contains('StripeElement--complete')) {
+        const nameLength = usernameInputPayment.value.length;
+        if (nameLength > 0) {
+            joinButtonPayment.classList.remove('disabled');
+            return true;
+        } else {
+            joinButtonPayment.classList.add('disabled');
+            return false;
+        }
+    } else {
+        joinButtonPayment.classList.add('disabled');
+        return false;
+    }
+};
 
 function createUserListItem(userId, name) {
     const div = document.createElement('div');
