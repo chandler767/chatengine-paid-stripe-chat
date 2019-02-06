@@ -15,17 +15,6 @@ const uuid = newUuid();
 
 let username; // local user name
 
-// Prompt user for a username input
-getLocalUserName().then((myUsername) => {
-    username = myUsername;
-    usernameModal.classList.add(hide);
-
-    // Connect ChatEngine after a username and UUID have been made
-    ChatEngine.connect(uuid, {
-        username
-    }, username);
-});
-
 // Send a message when Enter key is pressed
 messageInput.addEventListener('keydown', (event) => {
     if (event.keyCode === 13 && !event.shiftKey) {
@@ -113,45 +102,47 @@ function renderMessage(message) {
     chat.scrollTop = chat.scrollHeight;
 }
 
-function getLocalUserName() {
-    return new Promise((resolve) => {
-        usernameInput.focus();
-        usernameInput.value = '';
 
-        usernameInput.addEventListener('keyup', (event) => {
-            const nameLength = usernameInput.value.length;
 
-            if (nameLength > 0) {
-                joinButton.classList.remove('disabled');
-            } else {
-                joinButton.classList.add('disabled');
-            }
+usernameInput.addEventListener('keyup', (event) => {
+    const nameLength = usernameInput.value.length;
 
-            if (event.keyCode === 13) {
-                joinButton.click();
-            }
+    if (nameLength > 0) {
+        joinButton.classList.remove('disabled');
+    } else {
+        joinButton.classList.add('disabled');
+    }
+
+    if (event.keyCode === 13) {
+        joinButton.click();
+    }
+});
+
+joinButton.addEventListener('click', (event) => {
+    const nameLength = usernameInput.value.length;
+
+    if (nameLength > 0) {
+        $.ajax({
+            url: "https://pubsub.pubnub.com/v1/blocks/sub-key/sub-c-6843106e-2985-11e9-991a-bee2ac9fced0/auth?username="+usernameInput.value,
+            type: "POST",
+            complete: function(xhr, textStatus) {
+                console.log(xhr.status);
+                if (xhr.status == 200) {
+                    username = usernameInput.value;
+                    usernameModal.classList.add(hide);
+
+                    // Connect ChatEngine after a username and UUID have been made
+                    ChatEngine.connect(uuid, {
+                        username
+                    });
+                } else {
+                    alert("Unable to join chat. Did you pay for access?")
+                }
+            } 
         });
+    }
+});
 
-        joinButton.addEventListener('click', (event) => {
-            const nameLength = usernameInput.value.length;
-
-            if (nameLength > 0) {
-                $.ajax({
-                    url: "https://pubsub.pubnub.com/v1/blocks/sub-key/sub-c-6843106e-2985-11e9-991a-bee2ac9fced0/auth?username="+usernameInput.value,
-                    type: "GET",
-                    complete: function(xhr, textStatus) {
-                        console.log(xhr.status);
-                        if (xhr.status == 200) {
-                            resolve(usernameInput.value);
-                        } else {
-                            alert("Unable to join chat. Did you pay for access?")
-                        }
-                    } 
-                });
-            }
-        });
-    });
-}
 
 function createUserListItem(userId, name) {
     const div = document.createElement('div');
