@@ -19,6 +19,8 @@ const uuid = newUuid();
 
 let username; // local user name
 
+var processingPayment = false;
+
 // Create a Stripe client.
 var stripe = Stripe('pk_test_sL4tOMdvKxy7adblO2p4aPM7');
 
@@ -196,34 +198,38 @@ usernameInputPayment.addEventListener('keyup', (event) => {
 
 // Get token and process payment.
 joinButtonPayment.addEventListener('click', (event) => {
-    if (checkJoinButtonPayment()) {
-        $.ajax({
-            url: "https://pubsub.pubnub.com/v1/blocks/sub-key/sub-c-6843106e-2985-11e9-991a-bee2ac9fced0/auth?username="+encodeURI(usernameInputPayment.value),
-            type: "POST",
-            complete: function(xhr, textStatus) {
-                console.log(xhr.status);
-                if (xhr.status == 200) {
-                    alert("You have already paid and will not be charged again.")
-                    username = usernameInputPayment.value;
-                    usernameModal.classList.add(hide);
-                    // Connect ChatEngine.
-                    ChatEngine.connect(uuid, {
-                        username
-                    });
-                } else {
-                    stripe.createToken(card).then(function(result) {
-                    if (result.error) {
-                      // Inform the user if there was an error.
-                      var errorElement = document.getElementById('card-errors');
-                      errorElement.textContent = result.error.message;
+    if (!processingPayment) {
+        processingPayment = true;
+        if (checkJoinButtonPayment()) {
+            $.ajax({
+                url: "https://pubsub.pubnub.com/v1/blocks/sub-key/sub-c-6843106e-2985-11e9-991a-bee2ac9fced0/auth?username="+encodeURI(usernameInputPayment.value),
+                type: "POST",
+                complete: function(xhr, textStatus) {
+                    console.log(xhr.status);
+                    if (xhr.status == 200) {
+                        alert("You have already paid and will not be charged again.")
+                        username = usernameInputPayment.value;
+                        usernameModal.classList.add(hide);
+                        // Connect ChatEngine.
+                        ChatEngine.connect(uuid, {
+                            username
+                        });
                     } else {
-                      // Send the token to PubNub to process.
-                      stripeTokenHandler(result.token);
+                        stripe.createToken(card).then(function(result) {
+                        if (result.error) {
+                            // Inform the user if there was an error.
+                            var errorElement = document.getElementById('card-errors');
+                            errorElement.textContent = result.error.message;
+                            processingPayment = false;
+                        } else {
+                            // Send the token to PubNub to process.
+                            stripeTokenHandler(result.token);
+                        }
+                      });
                     }
-                  });
-                }
-            } 
-        });
+                } 
+            });
+        }
     }
 });
 
@@ -245,6 +251,7 @@ function stripeTokenHandler(token) {
             } else {
                 alert("Could not process charge at this time. Please check your card and try again.")
                 console.log(xhr.responseText)
+                processingPayment = false;
             }
         } 
     });
