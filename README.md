@@ -1,5 +1,5 @@
-# Paid Chat Example
-### Powered By PubNub ChatEngine and Stripe
+# ChatEngine Paid Chat Example
+### Powered By PubNub and Stripe
 
 <p align="center">
   <a href="https://www.pubnub.com/blog/socketio-chat-app-alternative/?devrel_gh=chatengine-paid-stripe-chat">
