@@ -17,7 +17,7 @@ This project is based on [PubNub ChatEngine Basic Chat](https://github.com/ajb41
 
 ## Live Demo
 
-[Paid Chat App Demo - Works on Mobile and Desktop](https://chandler767.github.io/chatengine-paid-stripe-chat/)
+[Paid Chat App Demo - Works on Mobile and Desktop](https://paid-chat.chandlermayo.com/)
 
 **Use a [Stripe test card](https://stripe.com/docs/testing).** Use any of the following test card numbers, a valid expiration date in the future, and any random CVC number, to create a successful payment
 - 4242424242424242	Visa
