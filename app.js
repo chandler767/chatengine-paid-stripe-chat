@@ -156,24 +156,17 @@ usernameInput.addEventListener('keyup', (event) => {
 joinButton.addEventListener('click', (event) => {
     const nameLength = usernameInput.value.length;
     if (nameLength > 0) {
-        $.ajax({ // Check if username has paid for access to the chat.
-            url: "https://pubsub.pubnub.com/v1/blocks/sub-key/sub-c-6843106e-2985-11e9-991a-bee2ac9fced0/auth?username="+encodeURI(usernameInput.value),
-            type: "POST",
-            complete: function(xhr, textStatus) {
-                console.log(xhr.status);
-                if (xhr.status == 200) {
-                    username = usernameInput.value;
-                    usernameModal.classList.add(hide);
+        if (checkUsernameAuth(usernameInput.value)) {
+            username = usernameInput.value;
+            usernameModal.classList.add(hide);
 
-                    // Connect ChatEngine.
-                    ChatEngine.connect(uuid, {
-                        username
-                    });
-                } else {
-                    alert("Unable to join chat. Did you pay for access?")
-                }
-            } 
-        });
+            // Connect ChatEngine.
+            ChatEngine.connect(uuid, {
+                username
+            });
+        } else {
+            alert("Unable to join chat. Did you pay for access?")
+        }
     }
 });
 
@@ -201,47 +194,8 @@ joinButtonPayment.addEventListener('click', (event) => {
     if (!processingPayment) {
         processingPayment = true;
         if (checkJoinButtonPayment()) {
-            $.ajax({
-                url: "https://pubsub.pubnub.com/v1/blocks/sub-key/sub-c-6843106e-2985-11e9-991a-bee2ac9fced0/auth?username="+encodeURI(usernameInputPayment.value),
-                type: "POST",
-                complete: function(xhr, textStatus) {
-                    console.log(xhr.status);
-                    if (xhr.status == 200) {
-                        alert("You have already paid and will not be charged again.")
-                        username = usernameInputPayment.value;
-                        usernameModal.classList.add(hide);
-                        // Connect ChatEngine.
-                        ChatEngine.connect(uuid, {
-                            username
-                        });
-                    } else {
-                        stripe.createToken(card).then(function(result) {
-                        if (result.error) {
-                            // Inform the user if there was an error.
-                            var errorElement = document.getElementById('card-errors');
-                            errorElement.textContent = result.error.message;
-                            processingPayment = false;
-                        } else {
-                            // Send the token to PubNub to process.
-                            stripeTokenHandler(result.token);
-                        }
-                      });
-                    }
-                } 
-            });
-        }
-    }
-});
-
-// Sent token to PubNub function to process.
-function stripeTokenHandler(token) {
-    $.ajax({
-        url: "https://pubsub.pubnub.com/v1/blocks/sub-key/sub-c-6843106e-2985-11e9-991a-bee2ac9fced0/stripe?username="+encodeURI(usernameInputPayment.value)+"&token="+token.id,
-        type: "POST",
-        complete: function(xhr, textStatus) {
-            console.log(xhr.status);
-            if (xhr.status == 200) {
-                alert("Thanks for paying.");
+            if (checkUsernameAuth(encodeURI(usernameInputPayment.value))) {
+                alert("You have already paid and will not be charged again.");
                 username = usernameInputPayment.value;
                 usernameModal.classList.add(hide);
                 // Connect ChatEngine.
@@ -249,12 +203,56 @@ function stripeTokenHandler(token) {
                     username
                 });
             } else {
-                alert("Could not process charge at this time. Please check your card and try again.")
-                console.log(xhr.responseText)
-                processingPayment = false;
-            }
-        } 
-    });
+                stripe.createToken(card).then(function(result) {
+                    if (result.error) {
+                        // Inform the user if there was an error.
+                        var errorElement = document.getElementById('card-errors');
+                        errorElement.textContent = result.error.message;
+                        processingPayment = false;
+                    } else {
+                        // Send the token to PubNub to process.
+                        stripeTokenHandler(result.token);
+                    }
+                });
+            } 
+        }
+    }
+});
+
+// Sent token to PubNub function to process.
+function stripeTokenHandler(token) {
+    var request = new XMLHttpRequest();
+    request.open('POST', "https://pubsub.pubnub.com/v1/blocks/sub-key/sub-c-6843106e-2985-11e9-991a-bee2ac9fced0/stripe?username="+encodeURI(usernameInputPayment.value)+"&token="+token.id, true);
+    request.onload = function () {
+        if (this.status == 200) {
+            alert("Thanks for paying.");
+            username = usernameInputPayment.value;
+            usernameModal.classList.add(hide);
+            // Connect ChatEngine.
+            ChatEngine.connect(uuid, {
+                username
+            });
+        } else {
+            alert("Could not process charge at this time. Please check your card and try again.")
+            console.log(this.responseText)
+            processingPayment = false;
+        }
+    };
+    request.send();
+}
+
+// Check if the user has paid for access.
+function checkUsernameAuth(username) {
+    var request = new XMLHttpRequest();
+    request.open('POST', "https://pubsub.pubnub.com/v1/blocks/sub-key/sub-c-6843106e-2985-11e9-991a-bee2ac9fced0/auth?username="+encodeURI(username), true);
+    request.onload = function () {
+        if (this.status == 200) {
+            return true;
+        } else {
+            return false;
+        }
+    };
+    request.send();
 }
 
 // Check that both inputs have been filled.
