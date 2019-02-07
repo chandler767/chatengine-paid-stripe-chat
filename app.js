@@ -164,7 +164,7 @@ joinButton.addEventListener('click', (event) => {
                 username = usernameInput.value;
                 connectChatEngine();
             } else {
-                alert("Unable to join chat. Did you pay for access?");
+                alert("Unable to join chat. Did you pay for access? Please use the same username from when your payment was processed.");
             }
         };
         request.send();
