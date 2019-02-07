@@ -1,3 +1,5 @@
+// DO NOT USE THIS CODE CLIENT SIDE. FOR A PUBNUB SERVERLESS ENV ONLY.
+// Set the module event type to "On Request".
 export default (request, response) => {
     const db = require("kvstore");
     const username = request.params.username;
