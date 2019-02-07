@@ -2,7 +2,7 @@
 ### Powered By PubNub and Stripe
 
 <p align="center">
-  <a href="https://www.pubnub.com/blog/socketio-chat-app-alternative/?devrel_gh=chatengine-paid-stripe-chat">
+  <a href="https://www.pubnub.com/blog/socket-io-chat-app-alternative/?devrel_gh=chatengine-paid-stripe-chat">
       <img alt="PubNub Blog" src="https://github.com/pubnub/chat-engine/blob/master/images/logo.png?raw=true" width=250/>
   </a>
 
