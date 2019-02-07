@@ -156,17 +156,18 @@ usernameInput.addEventListener('keyup', (event) => {
 joinButton.addEventListener('click', (event) => {
     const nameLength = usernameInput.value.length;
     if (nameLength > 0) {
-        if (checkUsernameAuth(usernameInput.value)) {
-            username = usernameInput.value;
-            usernameModal.classList.add(hide);
-
-            // Connect ChatEngine.
-            ChatEngine.connect(uuid, {
-                username
-            });
-        } else {
-            alert("Unable to join chat. Did you pay for access?")
-        }
+        // Check if the user has paid for access.
+        var request = new XMLHttpRequest();
+        request.open('POST', "https://pubsub.pubnub.com/v1/blocks/sub-key/sub-c-6843106e-2985-11e9-991a-bee2ac9fced0/auth?username="+encodeURI(usernameInput.value), true);
+        request.onload = function () {
+            if (this.status == 200) {
+                username = usernameInput.value;
+                connectChatEngine();
+            } else {
+                alert("Unable to join chat. Did you pay for access?");
+            }
+        };
+        request.send();
     }
 });
 
@@ -194,27 +195,29 @@ joinButtonPayment.addEventListener('click', (event) => {
     if (!processingPayment) {
         processingPayment = true;
         if (checkJoinButtonPayment()) {
-            if (checkUsernameAuth(encodeURI(usernameInputPayment.value))) {
-                alert("You have already paid and will not be charged again.");
-                username = usernameInputPayment.value;
-                usernameModal.classList.add(hide);
-                // Connect ChatEngine.
-                ChatEngine.connect(uuid, {
-                    username
-                });
-            } else {
-                stripe.createToken(card).then(function(result) {
-                    if (result.error) {
-                        // Inform the user if there was an error.
-                        var errorElement = document.getElementById('card-errors');
-                        errorElement.textContent = result.error.message;
-                        processingPayment = false;
-                    } else {
-                        // Send the token to PubNub to process.
-                        stripeTokenHandler(result.token);
-                    }
-                });
-            } 
+            // Check if the user has paid for access.
+            var request = new XMLHttpRequest();
+            request.open('POST', "https://pubsub.pubnub.com/v1/blocks/sub-key/sub-c-6843106e-2985-11e9-991a-bee2ac9fced0/auth?username="+encodeURI(usernameInputPayment.value), true);
+            request.onload = function () {
+                if (this.status == 200) {
+                    alert("You have already paid and will not be charged again.");
+                    username = usernameInputPayment.value;
+                    connectChatEngine();
+                } else {
+                    stripe.createToken(card).then(function(result) {
+                        if (result.error) {
+                            // Inform the user if there was an error.
+                            var errorElement = document.getElementById('card-errors');
+                            errorElement.textContent = result.error.message;
+                            processingPayment = false;
+                        } else {
+                            // Send the token to PubNub to process.
+                            stripeTokenHandler(result.token);
+                        }
+                    });
+                }
+            };
+            request.send();
         }
     }
 });
@@ -227,29 +230,11 @@ function stripeTokenHandler(token) {
         if (this.status == 200) {
             alert("Thanks for paying.");
             username = usernameInputPayment.value;
-            usernameModal.classList.add(hide);
-            // Connect ChatEngine.
-            ChatEngine.connect(uuid, {
-                username
-            });
+            connectChatEngine();
         } else {
             alert("Could not process charge at this time. Please check your card and try again.")
             console.log(this.responseText)
             processingPayment = false;
-        }
-    };
-    request.send();
-}
-
-// Check if the user has paid for access.
-function checkUsernameAuth(username) {
-    var request = new XMLHttpRequest();
-    request.open('POST', "https://pubsub.pubnub.com/v1/blocks/sub-key/sub-c-6843106e-2985-11e9-991a-bee2ac9fced0/auth?username="+encodeURI(username), true);
-    request.onload = function () {
-        if (this.status == 200) {
-            return true;
-        } else {
-            return false;
         }
     };
     request.send();
@@ -271,6 +256,14 @@ function checkJoinButtonPayment() {
         return false;
     }
 };
+
+// Connect ChatEngine.
+function connectChatEngine() {
+    usernameModal.classList.add(hide);
+    ChatEngine.connect(uuid, {
+        username
+    });
+}
 
 function createUserListItem(userId, name) {
     const div = document.createElement('div');
