@@ -69,6 +69,11 @@ window.onbeforeunload = (event) => {
     ChatEngine.disconnect();
 };
 
+// Let the user know not to try the demo with a real CC.
+window.onload = (event) => {
+    alert("App is in test mode. Please use one of Stripe’s test card numbers, such as 4242 4242 4242 4242.");
+};
+
 // Init ChatEngine
 const ChatEngine = ChatEngineCore.create({
     publishKey: 'pub-c-3c140ec6-5470-4241-b3a0-10413e0f797c',
