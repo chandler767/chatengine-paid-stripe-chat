@@ -16,6 +16,10 @@ This project is based on [PubNub ChatEngine Basic Chat](https://github.com/ajb41
 **No need** for Socket.io, Mongo, Express, or Node.js server, both ChatEngine and Stripe charges work with **serverless** technology powered by **[PubNub Functions](https://www.pubnub.com/products/functions/)**.
 
 ## Live Demo
+  <a href="https://www.pubnub.com/?devrel_gh=chatengine-paid-stripe-chat">
+      <img alt="PubNub Blog" src="https://www.pubnub.com/wp-content/uploads/2019/02/payandjoin.gif"/>
+  </a>
+
 
 [Paid Chat App Demo - Works on Mobile and Desktop](https://paid-chat.chandlermayo.com/)
 
